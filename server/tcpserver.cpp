@@ -3,7 +3,7 @@
 
 #define MAXIMUM_PACKET_SIZE 500
 
-TCPServer::TCPServer(const int port) {
+TCPServer::TCPServer(const int port) : port(port) {
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = htonl(INADDR_ANY);
     address.sin_port = htons(port);
@@ -26,12 +26,12 @@ void TCPServer::startServer() {
 bool TCPServer::initialize() {
     servSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (servSocket <= 0) {
-        LOG("failed to create socket");
+        LOG("failed to create socket. port: " << port);
         return false;
     }
 
     if (bind(servSocket, (const sockaddr*) &address, sizeof(sockaddr_in) ) < 0) {
-        LOG("failed to bind socket");
+        LOG("failed to bind socket. port: " << port);
         return false;
     }
 
@@ -39,6 +39,7 @@ bool TCPServer::initialize() {
         return false;
     }
 
+    LOG("connected to port: " << port);
     return true;
 }
 
@@ -46,9 +47,9 @@ void TCPServer::handlingAcceptConnection() {
     while (true) {
         int socketDescr = accept(servSocket, NULL, NULL);
         if (socketDescr < 0) {
+            //skip
         } else {
             addSession(socketDescr);
-            
         }
     }
 }
@@ -79,7 +80,7 @@ void TCPServer::removeSession(const int socketDescr) {
 
 Client::Client(int socketDescr, ConnectionObserver *connObserver) 
 : socketDescr(socketDescr), connObserver(connObserver) {
-    listenThread = std::thread([this]{listenHandler();});
+    listenThread = std::thread(&Client::listenHandler, this);
     listenThread.detach();
 }
 

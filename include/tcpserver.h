@@ -45,7 +45,7 @@ private:
     void disconnectEvent(const int socketDescr) override;
     void receiveData(const int sessionId, const char * const data, const unsigned int size, std::string &resp) override;
 
-
+    int port;
     sockaddr_in address;
     int servSocket;
     std::mutex mutex;
